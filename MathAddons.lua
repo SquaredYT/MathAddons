@@ -179,7 +179,7 @@ function Math.roman(num) -- converts integers into roman numberals (12 --> XII, 
 end
 
 
-function Math.rscience(x) -- reverses the scientific function (1.7233e3 --> 1723.3, 1.7233*10^3 --> 1723.3)
+function Math.rscience(x) -- the reverse of the scientific function (1.7233e3 --> 1723.3, 1.7233*10^3 --> 1723.3)
 	if string.find(x,'e') == nil then
 		local strs = string.split(x,'*')
 		return tonumber(strs[1]) * 10^ tonumber(string.split(strs[2],'^')[2])
