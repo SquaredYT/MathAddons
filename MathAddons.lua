@@ -1,11 +1,11 @@
 local Math = {}
 
-function Math.round(x,y) -- x is the float that you are rounding, y is the amount of decimal places you're rounding it to (--> m)
-	local r = 10^y
-	if y ~= nil then
-		return math.floor(x*r+.5)/r
+function Math.round(number : number, decimalPlace : number) -- x is the float that you are rounding, y is the amount of decimal places you're rounding it to (--> m)
+	local r = 10^decimalPlace
+	if decimalPlace ~= nil then
+		return math.floor(number*r+.5)/r
 	else
-		return math.floor(x+.5)
+		return math.floor(number+.5)
 	end
 
 end
@@ -18,137 +18,126 @@ function gcd(a,b)
 	end
 end
 
-function Math.perc(x,y)--just converts the value into a string with a percentage, y is to determine which decimal place to round it to (optional)
-	local r = 10^y
-	if y ~= nil then
-		return math.floor(x*100*r+.5)/r .. "%"
+function Math.perc(number : number, decimalPlace : number)--just converts the value into a string with a percentage, y is to determine which decimal place to round it to (optional)
+	local r = 10^decimalPlace
+	if decimalPlace ~= nil then
+		return math.floor(number*100*r+.5)/r .. "%"
 	else
-		return x*100 .. "%"
+		return number*100 .. "%"
 	end
 end
 
 
-function Math.flip() --randomly gets true or false
-	return math.random(1,2) == 1
+function Math.flip(odds : number) --randomly gets true or false
+	return math.random(1,100000)/1000 < math.clamp(odds,0,100)
 end
 
-function Math.fact(x) -- gets the factorial of the number 
+function Math.fact(number : number) -- gets the factorial of the number 
 	local r = 1
-	if math.abs(x) == x then
-		for i=1,x do
-			r = r*x
+	if math.abs(number) == number then
+		for i=1,number do
+			r *= i
 		end
 		return r
 	else
-		x = math.abs(x)
-		for i=1,x do
-			r = r*x
+		number = math.abs(number)
+		for i=1,number do
+			r *= i
 		end
 		return -r
 	end
 end
 
-function Math.commaFormat(x) -- formats the number into commas (1622 --> 1,622, 178263.8912 --> 178,263.8912)
-	local decimal = nil
-	if math.floor(x) ~= x then
-		decimal = string.split(tostring(x),'.')[2]
-		x = math.floor(x)
-	end
-	local digits = string.split(tostring(x),'')
-	local newS = ''
-	local leftOver = #tostring(x)%3
-	for i,v in pairs(digits) do
-		if i%3 == #tostring(x)%3 and #digits > 3 then
-			if i ~= #tostring(x) then
-				newS = newS.. v.. ','
-			else
-				newS = newS.. v
-			end
+function Math.commaFormat(number : number) -- formats the number into commas (1622 --> 1,622, 178263.8912 --> 178,263.8912)
 
-		else
-			newS = newS.. v
+	local i, j, n, int, dec = tostring(number):find('([-]?)(%d+)([.]?%d*)')
+	int = string.gsub(string.reverse(int),"(%d%d%d)", "%1,")
+	return n .. string.gsub(string.reverse(int),"^,", "") .. dec
+end
+
+function Math.int(number : number) -- checks if number is an integer
+	return math.floor(number) == number
+end
+
+function Math.random(table,decimalPlace : number) -- math.random but the second parameter is the decimal place (optional)
+	if type(table) == "table" then
+		if decimalPlace == nil then
+			decimalPlace = 0
 		end
-	end
-	if decimal == nil then
-		return newS
-	else
-		return (newS.. '.'.. decimal)
-	end
-	
-end
-
-function Math.int(x) -- checks if number is an integer
-	return math.floor(x) == x
-end
-
-function Math.sqrt(x) -- Just a square root
-return x^.5
-end
-
-function Math.random(x,d) -- math.random but the second parameter is the decimal place (optional)
-	if type(x) == "table" then
-		if d == nil then
-			d = 0
-		end
-		local r = 10^d
-		return math.random(tonumber(x[1])*r,tonumber(x[2])*r)/r
+		local r = 10^decimalPlace
+		return math.random(tonumber(table[1])*r,tonumber(table[2])*r)/r
 	else
 		return nil
 	end
 end
-function Math.fraction(x) --converts a decimal to a fraction (dont go to heavy on this with long decimals, it goes through a for loop)
-		local ret
-		for i=10,math.huge,10 do
-			if i/10 == math.floor(i/10) then
-
-				if (i*x) == math.floor(i*x) then
-					local gcf = gcd(i,i*x)
-					if math.floor(((i*x)/gcf)/(i/gcf)) == x then
-						ret = ((i*x)/gcf)/(i/gcf)
-					elseif (i*x)/gcf > i/gcf then
-						local whole = math.floor(((i*x)/gcf)/(i/gcf))
-						local subt = math.floor(whole*(i/gcf))
-						ret = whole.. " ".. (((i*x)/gcf))-subt.. "/".. i/gcf
-					elseif (i*x)/gcf < i/gcf then
-						ret = (i*x)/gcf.. "/".. i/gcf
-					end
-					break
-				end
-			end
+function Math.fraction(number : number)
+	local a,b,c,d,e,f = 0,1,1,1,nil,nil
+	local exact = false
+	for i=1,1000 do
+		e = a+c
+		f = b+d
+		print(e/f)
+		if e/f < number then
+			a=e
+			b=f
+		elseif e/f > number then
+			c=e
+			d=f
+		else
+			exact = true
+			break
 		end
-		return ret
 	end
+	return e..'/'..f,exact
+end
 
-function Math.prime(x) -- if x is a prime, then it returns true, else, it returns false
-	for i = 2, x^(1/2) do
-		if (x % i) == 0 then
+function Math.prime(number : number) -- if x is a prime, then it returns true, else, it returns false
+	for i = 2, number^(1/2) do
+		if (number % i) == 0 then
 			return false
 		end
 	end
 	return true
 end
 
-function Math.avg(x) -- gets the average of a table
+function Math.avg(table) -- gets the average of a table
 	local sum = 0
-	for _,v in pairs(x) do 
+	for _,v in pairs(table) do 
 		sum = sum + v
 	end
-	return sum / #x
+	return sum / #table
 end
 
-function Math.science(x,bool) -- turns any number into scientific (1273568172356 --> 1.273568172356 * 10^12 or 1.273568172356e12)
-	local log = math.floor(math.log10(x))
-	if bool == nil then
-		return x/(10^log).. ' * 10^'.. log
+function Math.science(number : number,toggleENotation : boolean) -- turns any number into scientific (1273568172356 --> 1.273568172356 * 10^12 or 1.273568172356e12)
+	if number ~= math.abs(number) then
+		number = math.abs(number)
+		local log = math.floor(math.log10(number))
+		if toggleENotation == nil then
+			return -number/(10^log).. ' * 10^'.. log
+		else
+			return -number/(10^log).. 'e'.. log
+		end
 	else
-		return x/(10^log).. 'e'.. log
+		local log = math.floor(math.log10(number))
+		if toggleENotation == nil then
+			return number/(10^log).. ' * 10^'.. log
+		else
+			return number/(10^log).. 'e'.. log
+		end
 	end
+
 		
 		
 end
 
-function Math.roman(num) -- converts integers into roman numberals (12 --> XII, 9 --> IV, 129 -->CXXIX)
+function Math.roman(number : number) -- converts integers into roman numberals (12 --> XII, 9 --> IV, 129 -->CXXIX)
 	local numberMap = {
+		{1000000, '_M'},
+		{500000, '_D'},
+		{100000, '_C'},
+		{50000, '_L'},
+		{10000, '_X'},
+		{5000, '_V'},
 		{1000, 'M'},
 		{900, 'CM'},
 		{500, 'D'},
@@ -165,13 +154,13 @@ function Math.roman(num) -- converts integers into roman numberals (12 --> XII, 
 
 	}
 	local roman = ""
-	while num > 0 do
+	while number > 0 do
 		for index,v in pairs(numberMap)do 
 			local romanChar = v[2]
 			local int = v[1]
-			while num >= int do
+			while number >= int do
 				roman = roman..romanChar
-				num = num - int
+				number = number - int
 			end
 		end
 	end
@@ -179,25 +168,32 @@ function Math.roman(num) -- converts integers into roman numberals (12 --> XII, 
 end
 
 
-function Math.rscience(x) -- the reverse of the scientific function (1.7233e3 --> 1723.3, 1.7233*10^3 --> 1723.3)
-	if string.find(x,'e') == nil then
-		local strs = string.split(x,'*')
+function Math.rscience(scientificNotation : string) -- reverses the scientific function (1.7233e3 --> 1723.3, 1.7233*10^3 --> 1723.3)
+	if string.find(scientificNotation,'e') == nil then
+		local strs = string.split(scientificNotation,'*')
 		return tonumber(strs[1]) * 10^ tonumber(string.split(strs[2],'^')[2])
 	else
-		local strs = string.split(x,'e')
+		local strs = string.split(scientificNotation,'e')
 		return tonumber(strs[1]) * 10^ tonumber(strs[2])
 	end
 end
 
-function Math.kmbt(x) --formats the number into mbt format (millions, billions, trillions), (1622 --> 1.62K, 179123672163 --> 179.12B)
+function Math.kmbt(number : number) --formats the number into mbt format (millions, billions, trillions), (1622 --> 1.62K, 179123672163 --> 179.12B)
 	local t = {'K','M','B','T','Qa','Qi','Sx','Sp','Oc','No','Dc','Udc','Ddc','Tdc'}
-	if x < 1000 then return x end
-	local log = math.log10(x)
-	return math.floor(x/10^(math.floor(log/3)+2*math.floor(log/3))*100)/100 .. t[math.floor(log/3)]
+	if number ~= math.abs(number) then
+		number = math.abs(number)
+		if number < 1000 then return -number end
+		local log = math.log10(number)
+		return -math.floor(number/10^(math.floor(log/3)+2*math.floor(log/3))*100)/100 .. t[math.floor(log/3)]
+	else
+		if number < 1000 then return number end
+		local log = math.log10(number)
+		return math.floor(number/10^(math.floor(log/3)+2*math.floor(log/3))*100)/100 .. t[math.floor(log/3)]
+
+	end
 end
-function Math.equation(equ) -- solves an equation in the form of mx+b=y or even x=y (x=5 --> 5, 2x+3=8 --> 2.5, 12x+612=1623 -->  84.25). This may give an error depending on equation complexity
-	local Str = equ
-	local nospace = Str:gsub(" ","")
+function Math.equation(axPlusBEqualsC : string) -- solves an equation in the form of mx+b=y or even x=y (x=5 --> 5, 2x+3=8 --> 2.5, 12x+612=1623 -->  84.25). This may give an error depending on equation complexity
+	local nospace = axPlusBEqualsC:gsub(" ","")
 	local a, b, c = nospace:match("(.+)x+(.+)=(.+)")
 	if string.split(nospace,'x')[1] == '-' then a = -1 end
 	if a == nil then a = string.split(nospace,'x')[1] end
@@ -211,10 +207,10 @@ function Math.equation(equ) -- solves an equation in the form of mx+b=y or even 
 
 end
 
-function Math.time(x,y) -- parameter 1 is for the time 0-24, parameter 2 is if the 12 or 24 hour system is used, if set to false, the script will use the 24 hours system.
-	if y == nil or y == false then
-		local hours = math.floor(x)
-		local m = (x-hours)*60
+function Math.time(time24 : number,toggle12Hr : boolean) -- parameter 1 is for the time 0-24, parameter 2 is if the 12 or 24 hour system is used, if set to false, the script will use the 24 hours system.
+	if toggle12Hr == nil or toggle12Hr == false then
+		local hours = math.floor(time24)
+		local m = (time24-hours)*60
 		local minutes = math.floor(m+.5)
 		local seconds = math.floor((m-minutes)*60+.5)
 		if hours >= 0 and hours <= 24 then
@@ -234,11 +230,11 @@ function Math.time(x,y) -- parameter 1 is for the time 0-24, parameter 2 is if t
 				return "0".. hours.. ":".. minutes.. ":".. seconds
 			end
 		end
-	elseif y == true then
-		local hours = math.floor(x)
+	elseif toggle12Hr == true then
+		local hours = math.floor(time24)
 		if hours > 12 and hours < 24 then
 			hours = hours - 12
-			local m = ((x-12)-hours)*60
+			local m = ((time24-12)-hours)*60
 			local minutes = math.floor(m+.5)
 			local seconds = math.floor((m-minutes)*60+.5)
 			if hours < 10 and seconds < 10 and minutes < 10 then
@@ -257,7 +253,7 @@ function Math.time(x,y) -- parameter 1 is for the time 0-24, parameter 2 is if t
 				return "0".. hours.. ":".. minutes.. ":".. seconds.. " PM"
 			end
 		elseif hours == 12 and hours < 24 then
-			local m = (x-hours)*60
+			local m = (time24-hours)*60
 			local minutes = math.floor(m+.5)
 			local seconds = math.floor((m-minutes)*60+.5)
 			if hours < 10 and seconds < 10 and minutes < 10 then
@@ -276,7 +272,7 @@ function Math.time(x,y) -- parameter 1 is for the time 0-24, parameter 2 is if t
 				return "0".. hours.. ":".. minutes.. ":".. seconds.. " PM"
 			end
 		elseif hours == 24 then
-			local m = ((x-12)-hours)*60
+			local m = ((time24-12)-hours)*60
 			local minutes = math.floor(m+.5)
 			local seconds = math.floor((m-minutes)*60+.5)
 			if hours < 10 and seconds < 10 and minutes < 10 then
@@ -295,7 +291,7 @@ function Math.time(x,y) -- parameter 1 is for the time 0-24, parameter 2 is if t
 				return "0".. hours.. ":".. minutes.. ":".. seconds.. " AM"
 			end
 		elseif hours < 24 and hours > 0 then
-			local m = (x-hours)*60
+			local m = (time24-hours)*60
 			local minutes = math.floor(m+.5)
 			local seconds = math.floor((m-minutes)*60+.5)
 			if hours < 10 and seconds < 10 and minutes < 10 then
@@ -315,7 +311,7 @@ function Math.time(x,y) -- parameter 1 is for the time 0-24, parameter 2 is if t
 			end
 		elseif hours == 0 then
 			hours = 12
-			local m = ((x)-hours)*60
+			local m = ((time24)-hours)*60
 			local minutes = math.floor(m+.5)
 			local seconds = math.floor((m-minutes)*60+.5)
 			if hours < 10 and seconds < 10 and minutes < 10 then
@@ -336,6 +332,38 @@ function Math.time(x,y) -- parameter 1 is for the time 0-24, parameter 2 is if t
 		end
 	end
 end
+
+--Useless Math
+function Math.intergral(p,l,u,f)
+	local s = 0
+	local n = false
+	if u < 0 then
+		n = true
+		u=math.abs(u)
+	end
+	for i=l,u,p do
+		s += f(i)*p
+	end
+	if n then return -s else return s end
+end
+function Math.derivative(precision,point,func)
+	return (func(point+precision)-func(point))/precision
+end
+function Math.summation(start,finish,f)
+	local sum = 0
+	for i=start,finish do
+		sum += f(i)
+	end
+	return sum
+end
+function Math.product(start,finish,f)
+	local sum = 0
+	for i=start,finish do
+		sum *= f(i)
+	end
+	return sum
+end
+
 return Math
 
 --hi :D
