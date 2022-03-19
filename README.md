@@ -19,6 +19,6 @@ local average = Math.avg(numbers)
 print(average) -- 3.5
 ```
 
-**Want to check it out?**  grab the **[model here](https://www.roblox.com/library/7066695577/MathAddons)**! or see what it's like in the **[playground (coming soon)](https://www.roblox.com/games/7062428240)**!
+**Want to check it out?**  grab the **[model here](https://www.roblox.com/library/7066695577/MathAddons)**! or see what it's like in the **[playground](https://www.roblox.com/games/7062428240)**!
 
 Need more help? Check out the **[Documentation here](https://devforum.roblox.com/t/introducing-mathaddons/1338754)**
