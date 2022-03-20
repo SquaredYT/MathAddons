@@ -70,13 +70,13 @@ function Math.random(table,decimalPlace : number) -- math.random but the second 
 		return nil
 	end
 end
-function Math.fraction(number : number)
+function Math.fraction(number : number,mixed : boolean)
+	local whole,number = math.modf(number)
 	local a,b,c,d,e,f = 0,1,1,1,nil,nil
 	local exact = false
-	for i=1,1000 do
+	for i=1,10000 do
 		e = a+c
 		f = b+d
-		print(e/f)
 		if e/f < number then
 			a=e
 			b=f
@@ -84,11 +84,16 @@ function Math.fraction(number : number)
 			c=e
 			d=f
 		else
-			exact = true
 			break
 		end
 	end
-	return e..'/'..f,exact
+		exact = e/f == number
+	if mixed then
+		return whole.. ' '..e..'/'..f,exact
+	else
+		return e+(f*whole)..'/'..f,exact
+	end
+	
 end
 
 function Math.prime(number : number) -- if x is a prime, then it returns true, else, it returns false
@@ -206,6 +211,8 @@ function Math.equation(axPlusBEqualsC : string) -- solves an equation in the for
 	return (isovar)
 
 end
+
+
 
 function Math.time(time24 : number,toggle12Hr : boolean) -- parameter 1 is for the time 0-24, parameter 2 is if the 12 or 24 hour system is used, if set to false, the script will use the 24 hours system.
 	if toggle12Hr == nil or toggle12Hr == false then
@@ -334,7 +341,7 @@ function Math.time(time24 : number,toggle12Hr : boolean) -- parameter 1 is for t
 end
 
 --Useless Math
-function Math.intergral(p,l,u,f)
+function Math.integral(p,l,u,f)
 	local s = 0
 	local n = false
 	if u < 0 then
@@ -345,6 +352,51 @@ function Math.intergral(p,l,u,f)
 		s += f(i)*p
 	end
 	if n then return -s else return s end
+end
+
+function Math.quadsolve(equation : string)
+	local check = false
+	local a1 = string.split(equation,'x^2')[1]
+	local b1
+	--print(string.split(equation,'x')[2])
+	--print(string.split(string.split(equation,'x')[2],'^2')[2])
+	if string.split(equation,'x')[2] == '^2+'  then
+		b1 = 1
+	elseif string.split(equation,'x')[2] == '^2-' then
+		b1 = -1
+	elseif string.split(equation,'x')[2] == '^2' then
+		b1 = 0
+	elseif string.find(equation,'x',#a1+1) ~= nil then
+		b1 = 0
+		check = true
+	else
+		b1 = string.split(string.split(equation,'x')[2],'^2')[2]
+	end
+	
+	local c1 = string.split(equation,'x')[3]
+	if check then
+		c1 = string.split(string.split(equation,'x')[2],'^2')[2]
+	end
+	--print(a1,b1,c1)
+	
+	if a1 == nil or a1 == '' then
+		a1 = '1'
+	elseif a1 == '-' then
+		a1 = '-1'
+	end
+	if b1 == ''  then
+		b1 = '1'
+	elseif b1 == '-' then
+		b1 = '-1'
+	elseif b1 == nil  then
+		b1 = '0'
+	
+	end
+	if c1 == nil or c1 == '' then
+		c1 = '0'
+	end
+	local a,b,c = a1,b1,c1
+	return (-b+math.sqrt(b^2-4*a*c))/(2*a),(-b-math.sqrt(b^2-4*a*c))/(2*a)
 end
 function Math.derivative(precision,point,func)
 	return (func(point+precision)-func(point))/precision
@@ -363,7 +415,14 @@ function Math.product(start,finish,f)
 	end
 	return sum
 end
+--Consants
 
+Math.e = 2.718281828459045235360287471352662497757247093699959574966967627724076630353547594571382178525166427427466391932003059921817413596629043572900334295260595630738132328627943490763233829880753195251019011573834187930702154089149934884167509244761460668082264800168477411853742345442437107539077744992069551702761838606261331384583000752044933826560297606737113200709328709127443747047230696977209310
+Math.phi = (1+5^.5)/2
+
+--Useless Ones
+Math.pi = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555 --162 digits of pi(doesnt mean anything since lua rounds to the nearest 13th digit, its just a flex)
+Math.tau = 3.14159265358979323846264338327950288419716939937510582097494459230781640628620899862803482534211706798214808651328230664709384460955058223172535940812848111745028410270193852110555*2 -- *2 (crazy)
 return Math
 
 --hi :D
