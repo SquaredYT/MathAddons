@@ -212,7 +212,18 @@ function Math.equation(axPlusBEqualsC : string) -- solves an equation in the for
 
 end
 
+function Math.factors(number : number) 
+	local f = {}
 
+	for i = 1, number/2 do
+		if number % i == 0 then 
+			f[#f+1] = i
+		end
+	end
+	f[#f+1] = number
+
+	return f
+end
 
 function Math.time(time24 : number,toggle12Hr : boolean) -- parameter 1 is for the time 0-24, parameter 2 is if the 12 or 24 hour system is used, if set to false, the script will use the 24 hours system.
 	if toggle12Hr == nil or toggle12Hr == false then
@@ -354,49 +365,79 @@ function Math.integral(p,l,u,f)
 	if n then return -s else return s end
 end
 
-function Math.quadsolve(equation : string)
-	local check = false
-	local a1 = string.split(equation,'x^2')[1]
-	local b1
-	--print(string.split(equation,'x')[2])
-	--print(string.split(string.split(equation,'x')[2],'^2')[2])
-	if string.split(equation,'x')[2] == '^2+'  then
-		b1 = 1
-	elseif string.split(equation,'x')[2] == '^2-' then
-		b1 = -1
-	elseif string.split(equation,'x')[2] == '^2' then
-		b1 = 0
-	elseif string.find(equation,'x',#a1+1) ~= nil then
-		b1 = 0
-		check = true
+function Math.quadsolve(a,b,c)
+	local disc = b^2-4*a*c
+	local root
+	local perfectroot = false
+	local negative = disc < 0
+	if not negative then
+		for i,v in pairs(Math.factors(disc)) do
+			if v^.5 == math.floor(v^.5) then
+				root = v
+				if v == disc then
+					perfectroot = true
+				end
+			end
+		end
+		if -b == 0 then
+			if perfectroot then
+				return '+'..disc^.5/2*a .. '','-'..disc^.5/2*a.. ''
+			elseif root^.5 == 2*a then
+				return '+'..'\\sqrt{'..disc/root..'}','-'..'\\sqrt{'..disc/root..'}'
+			elseif root == 1 then
+				a=''
+				return '+'..'\\frac{\\sqrt{'..disc..'}}{'..2*a..'}','-'..'\\frac{\\sqrt{'..disc..'}}{'..2*a..'}'
+			else
+				return '+'..'\\frac{\\sqrt{'..disc..'}}{'..2*a..'}','-'..'\\frac{\\sqrt{'..disc..'}}{'..2*a..'}'
+			end
+		else
+			if perfectroot then
+				return -b/2*a +(disc^.5/2*a),-b/2*a -(disc^.5/2*a)
+			elseif root == 1 then
+				return '\\frac{'..-b..'+'..'\\sqrt{'..disc..'}}{'..2*a..'}','\\frac{'..-b..'-'..'\\sqrt{'..disc..'}}{'..2*a..'}'
+			elseif root^.5 == 2*a then
+				return -b/root^.5 ..'+'..'\\sqrt{'..disc/root..'}',-b/root^.5 ..'-'..'\\sqrt{'..disc/root..'}'
+			else
+				return '\\frac{'..-b..'+'..'\\sqrt{'..disc..'}}{'..2*a..'}','\\frac{'..-b..'+'..'\\sqrt{'..disc..'}}{'..2*a..'}'
+			end
+		end
+
 	else
-		b1 = string.split(string.split(equation,'x')[2],'^2')[2]
+		for i,v in pairs(Math.factors(math.abs(disc))) do
+			if v^.5 == math.floor(v^.5) then
+				root = v
+				if v == math.abs(disc) then
+					perfectroot = true
+				end
+			end
+		end
+		disc = math.abs(disc)
+		if -b == 0 then
+			if root == 1 then
+				a=''
+				return '+'..'\\frac{\\sqrt{'..disc..'}i}{'..2*a..'}','-'..'\\frac{\\sqrt{'..disc..'}i}{'..2*a..'}'
+			elseif root^.5 == 2*a then
+				return '+'..'\\sqrt{'..disc/root..'}i','-'..'\\sqrt{'..disc/root..'}i'
+			elseif perfectroot then
+				return '+'..disc^.5/2*a .. 'i','-'..disc^.5/2*a.. 'i'
+			else
+				return '+'..'\\frac{\\sqrt{'..disc..'}i}{2'..a..'}','-'..'\\frac{\\sqrt{'..disc..'}i}{2'..a..'}'
+			end
+		else
+
+			if root == 1 then
+				a=1
+				return '\\frac{'..-b..'+'..'\\sqrt{'..disc..'}i}{'..2*a..'}','\\frac{'..-b..'-'..'\\sqrt{'..disc..'}i}{'..2*a..'}'
+			elseif root^.5 == 2*a then
+				return -b/root^.5 ..'+'..'\\sqrt{'..disc/root..'}i', -b/root^.5 ..'-'..'\\sqrt{'..disc/root..'}i'
+			elseif perfectroot then
+				return -b/2*a ..'+'..disc^.5/2*a .. 'i',-b/2*a ..'-'..disc^.5/2*a.. 'i'
+			else
+				return '\\frac{'..-b..'+'..'\\sqrt{'..disc..'}i}{'..2*a..'}','\\frac{'..-b..'-'..'\\sqrt{'..disc..'}i}{'..2*a..'}'
+			end
+		end
+
 	end
-	
-	local c1 = string.split(equation,'x')[3]
-	if check then
-		c1 = string.split(string.split(equation,'x')[2],'^2')[2]
-	end
-	--print(a1,b1,c1)
-	
-	if a1 == nil or a1 == '' then
-		a1 = '1'
-	elseif a1 == '-' then
-		a1 = '-1'
-	end
-	if b1 == ''  then
-		b1 = '1'
-	elseif b1 == '-' then
-		b1 = '-1'
-	elseif b1 == nil  then
-		b1 = '0'
-	
-	end
-	if c1 == nil or c1 == '' then
-		c1 = '0'
-	end
-	local a,b,c = a1,b1,c1
-	return (-b+math.sqrt(b^2-4*a*c))/(2*a),(-b-math.sqrt(b^2-4*a*c))/(2*a)
 end
 function Math.derivative(precision,point,func)
 	return (func(point+precision)-func(point))/precision
@@ -415,8 +456,12 @@ function Math.product(start,finish,f)
 	end
 	return sum
 end
---Consants
 
+function Math.limit(lim,func)
+	return math.floor(func(lim+1e-13)*10^12)/10^12
+end
+
+--Consants
 Math.e = 2.718281828459045235360287471352662497757247093699959574966967627724076630353547594571382178525166427427466391932003059921817413596629043572900334295260595630738132328627943490763233829880753195251019011573834187930702154089149934884167509244761460668082264800168477411853742345442437107539077744992069551702761838606261331384583000752044933826560297606737113200709328709127443747047230696977209310
 Math.phi = (1+5^.5)/2
 
